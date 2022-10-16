@@ -11,9 +11,11 @@ import { generateTeam, randomPosition, range } from './generators';
 import PositionedCharacter from './PositionedCharacter';
 
 export default class GameController {
-	private gamePlay: any;
+	private readonly gamePlay: any;
 
 	private stateService: any;
+
+	private positionedCharacters?: PositionedCharacter[];
 
 	constructor(gamePlay: GamePlay, stateService: GameStateService) {
 		this.gamePlay = gamePlay;
@@ -39,28 +41,31 @@ export default class GameController {
 		const randomPositionsAlly = randomPosition(positionsAlly, countAlly);
 		const randomPositionsEnemy = randomPosition(positionsEnemy, countEnemy);
 
-		const positions = allies.characters.map(
+		this.positionedCharacters = allies.characters.map(
 			(item, idx) => new PositionedCharacter(item, randomPositionsAlly[idx])
 		).concat(enemies.characters.map(
 			(item, idx) => new PositionedCharacter(item, randomPositionsEnemy[idx])
 		));
-		this.gamePlay.redrawPositions(positions);
-		// TODO: add event listeners to gamePlay events
+		this.gamePlay.redrawPositions(this.positionedCharacters);
+		this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
+		this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
+		this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
 		// TODO: load saved stated from stateService
 	}
 
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-unused-vars
+	// eslint-disable-next-line class-methods-use-this
 	onCellClick(index: number) {
-		// TODO: react to click
+
 	}
 
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-unused-vars
 	onCellEnter(index: number) {
-		// TODO: react to mouse enter
+		const character = this.positionedCharacters?.find(
+			(positionedCharacter) => positionedCharacter.position === index
+		);
+		this.gamePlay.showCellTooltip(character?.character.toString(), index);
 	}
 
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-unused-vars
 	onCellLeave(index: number) {
-		// TODO: react to mouse leave
+		this.gamePlay.hideCellTooltip(index);
 	}
 }

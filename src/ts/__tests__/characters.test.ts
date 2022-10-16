@@ -47,3 +47,9 @@ test('should match the specified properties', () => {
 	expect(object.attack).toBe(25);
 	expect(object.defence).toBe(25);
 });
+
+test('should compare strings', () => {
+	const object = new Vampire(1);
+	const expected = '\u{1F396} 1 \u{2694} 25 \u{1F6E1} 25 \u{2764} 50';
+	expect(object.toString()).toBe(expected);
+});
