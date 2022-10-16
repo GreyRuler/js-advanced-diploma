@@ -12,13 +12,22 @@
  * undead
  * vampire
  */
-export default class Character {
-  constructor(level, type = 'generic') {
-    this.level = level;
-    this.attack = 0;
-    this.defence = 0;
-    this.health = 50;
-    this.type = type;
-    // TODO: выбросите исключение, если кто-то использует "new Character()"
-  }
+export default abstract class Character {
+	level: number;
+
+	attack: number;
+
+	defence: number;
+
+	health: number;
+
+	type: string;
+
+	protected constructor(level: number, type: string) {
+		this.level = level;
+		this.attack = 0;
+		this.defence = 0;
+		this.health = 50;
+		this.type = type;
+	}
 }

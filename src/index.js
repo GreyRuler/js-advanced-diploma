@@ -1,5 +1,5 @@
 import './css/style.css';
-import './js/app';
+import './ts/app.ts';
 
 // Точка входа webpack
 // Не пишите код в данном файле
