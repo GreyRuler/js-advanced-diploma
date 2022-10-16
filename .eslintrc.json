@@ -42,8 +42,9 @@
 					"imports": "never",
 					"exports": "never",
 					"functions": "never"
-				}]
-            }
+				}],
+				"no-alert": "off"
+			}
         }
     ]
 }

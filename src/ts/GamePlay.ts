@@ -100,7 +100,7 @@ export default class GamePlay {
 		for (const cell of this.cells) {
 			cell.innerHTML = '';
 		}
-		console.log(positions);
+
 		for (const position of positions) {
 			const cellEl = this.boardEl?.children[position.position];
 			const charEl = document.createElement('div');
