@@ -55,14 +55,23 @@ export default class GameController {
 
 	// eslint-disable-next-line class-methods-use-this
 	onCellClick(index: number) {
-
+		const character = this.positionedCharacters?.find(
+			(positionedCharacter) => positionedCharacter.position === index
+		)?.character;
+		if (character && ['bowman', 'swordsman', 'magician'].includes(character.type)) {
+			this.gamePlay.selectCell(index);
+		} else {
+			GamePlay.showError('Выберите своего персонажа');
+		}
 	}
 
 	onCellEnter(index: number) {
 		const character = this.positionedCharacters?.find(
 			(positionedCharacter) => positionedCharacter.position === index
-		);
-		this.gamePlay.showCellTooltip(character?.character.toString(), index);
+		)?.character;
+		if (character) {
+			this.gamePlay.showCellTooltip(character.toString(), index);
+		}
 	}
 
 	onCellLeave(index: number) {

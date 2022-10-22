@@ -6,9 +6,9 @@ export default class GamePlay {
 
 	private readonly container: Element;
 
-	private boardEl?: Element;
+	private boardEl?: HTMLElement;
 
-	private cells: HTMLElement[];
+	private readonly cells: HTMLElement[];
 
 	private cellClickListeners: any[];
 
@@ -27,6 +27,8 @@ export default class GamePlay {
 	private saveGameEl: any;
 
 	private loadGameEl: any;
+
+	private currentSelectCell?: number;
 
 	constructor(container: Element | null) {
 		if (container) {
@@ -73,7 +75,7 @@ export default class GamePlay {
 
 		const board = this.container.querySelector('[data-id=board]');
 		if (board) {
-			this.boardEl = board;
+			this.boardEl = board as HTMLElement;
 		} else {
 			throw Error(`${board}`);
 		}
@@ -217,6 +219,10 @@ export default class GamePlay {
 
 	selectCell(index: number, color = 'yellow') {
 		this.deselectCell(index);
+		if (this.currentSelectCell) {
+			this.deselectCell(this.currentSelectCell);
+		}
+		this.currentSelectCell = index;
 		this.cells[index].classList.add('selected', `selected-${color}`);
 	}
 
@@ -250,13 +256,8 @@ export default class GamePlay {
 	}
 
 	setCursor(cursor: any) {
-		// @ts-ignore
-		this.boardEl?.style.cursor = cursor;
+		if (this.boardEl) {
+			this.boardEl.style.cursor = cursor;
+		}
 	}
-
-	// checkBinding() {
-	// 	if (this.container === null) {
-	// 		throw new Error('GamePlay not bind to DOM');
-	// 	}
-	// }
 }
