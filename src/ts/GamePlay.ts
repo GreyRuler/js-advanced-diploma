@@ -2,6 +2,8 @@ import { calcHealthLevel, calcTileType } from './utils';
 import PositionedCharacter from './PositionedCharacter';
 
 export default class GamePlay {
+	[key: string]: any;
+
 	protected readonly boardSize: number;
 
 	private readonly container: Element;
@@ -28,7 +30,9 @@ export default class GamePlay {
 
 	private loadGameEl: any;
 
-	private currentSelectCell?: number;
+	private cellCharacter?: number;
+
+	private cellOther?: number;
 
 	constructor(container: Element | null) {
 		if (container) {
@@ -52,8 +56,6 @@ export default class GamePlay {
 	 * @param theme
 	 */
 	drawUi(theme: string) {
-		// this.checkBinding();
-
 		this.container.innerHTML = `
 			<div class="controls">
 				<button data-id="action-restart" class="btn">New Game</button>
@@ -219,10 +221,6 @@ export default class GamePlay {
 
 	selectCell(index: number, color = 'yellow') {
 		this.deselectCell(index);
-		if (this.currentSelectCell) {
-			this.deselectCell(this.currentSelectCell);
-		}
-		this.currentSelectCell = index;
 		this.cells[index].classList.add('selected', `selected-${color}`);
 	}
 
@@ -255,7 +253,7 @@ export default class GamePlay {
 		});
 	}
 
-	setCursor(cursor: any) {
+	setCursor(cursor: string) {
 		if (this.boardEl) {
 			this.boardEl.style.cursor = cursor;
 		}

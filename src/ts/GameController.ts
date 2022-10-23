@@ -9,6 +9,7 @@ import Undead from './characters/enemy/Undead';
 import Vampire from './characters/enemy/Vampire';
 import { generateTeam, randomPosition, range } from './generators';
 import PositionedCharacter from './PositionedCharacter';
+import cursors from './cursors';
 
 export default class GameController {
 	private readonly gamePlay: any;
@@ -53,12 +54,15 @@ export default class GameController {
 		// TODO: load saved stated from stateService
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	onCellClick(index: number) {
 		const character = this.positionedCharacters?.find(
 			(positionedCharacter) => positionedCharacter.position === index
 		)?.character;
 		if (character && ['bowman', 'swordsman', 'magician'].includes(character.type)) {
+			if (this.gamePlay.cellCharacter) {
+				this.gamePlay.deselectCell(this.gamePlay.cellCharacter);
+			}
+			this.gamePlay.cellCharacter = index;
 			this.gamePlay.selectCell(index);
 		} else {
 			GamePlay.showError('Выберите своего персонажа');
@@ -72,9 +76,28 @@ export default class GameController {
 		if (character) {
 			this.gamePlay.showCellTooltip(character.toString(), index);
 		}
+		switch (true) {
+			case !character:
+				this.gamePlay.setCursor(cursors.pointer);
+				this.gamePlay.selectCell(index, 'green');
+				break;
+			case ['bowman', 'swordsman', 'magician'].includes(character!.type):
+				this.gamePlay.setCursor(cursors.pointer);
+				break;
+			case ['daemon', 'undead', 'vampire'].includes(character!.type):
+				this.gamePlay.setCursor(cursors.crosshair);
+				this.gamePlay.selectCell(index, 'red');
+				break;
+			default:
+				this.gamePlay.setCursor(cursors.notallowed);
+				GamePlay.showError('Недопустимое действие');
+		}
 	}
 
 	onCellLeave(index: number) {
 		this.gamePlay.hideCellTooltip(index);
+		if (index !== this.gamePlay.cellCharacter) {
+			this.gamePlay.deselectCell(index);
+		}
 	}
 }
