@@ -85,6 +85,7 @@ export default class GameController {
 					positionedCharacter.character.health -= damage;
 					this.gamePlay.redrawPositions(this.positionedCharacters!);
 				});
+				// TODO ход врага
 			} else if (movementRadius(
 				this.gamePlay.currentCharacter?.position,
 				this.gamePlay.currentCharacter?.character.movementRange,
@@ -95,9 +96,10 @@ export default class GameController {
 				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
 				this.gamePlay.currentCharacter.position = index;
 				this.gamePlay.redrawPositions(this.positionedCharacters!);
+				// TODO ход врага
+			} else {
+				GamePlay.showError('Недопустимое действие');
 			}
-		} else {
-			GamePlay.showError('Недопустимое действие');
 		}
 	}
 
