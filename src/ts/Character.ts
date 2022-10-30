@@ -13,6 +13,10 @@
  * vampire
  */
 export default abstract class Character {
+	attackRange: number;
+
+	movementRange: number;
+
 	level: number;
 
 	attack: number;
@@ -29,6 +33,8 @@ export default abstract class Character {
 		this.defence = 0;
 		this.health = 50;
 		this.type = type;
+		this.attackRange = 0;
+		this.movementRange = 0;
 	}
 
 	toString() {

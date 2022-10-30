@@ -4,7 +4,7 @@ import PositionedCharacter from './PositionedCharacter';
 export default class GamePlay {
 	[key: string]: any;
 
-	protected readonly boardSize: number;
+	public readonly boardSize: number;
 
 	private readonly container: Element;
 
@@ -30,7 +30,7 @@ export default class GamePlay {
 
 	private loadGameEl: any;
 
-	private cellCharacter?: number;
+	public currentCharacter?: PositionedCharacter;
 
 	private cellOther?: number;
 

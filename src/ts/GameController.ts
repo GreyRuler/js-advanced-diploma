@@ -7,12 +7,14 @@ import Swordsman from './characters/ally/Swordsman';
 import Daemon from './characters/enemy/Daemon';
 import Undead from './characters/enemy/Undead';
 import Vampire from './characters/enemy/Vampire';
-import { generateTeam, randomPosition, range } from './generators';
+import {
+	attackRadius, generateTeam, movementRadius, randomPosition, range
+} from './generators';
 import PositionedCharacter from './PositionedCharacter';
 import cursors from './cursors';
 
 export default class GameController {
-	private readonly gamePlay: any;
+	private readonly gamePlay: GamePlay;
 
 	private stateService: any;
 
@@ -55,17 +57,47 @@ export default class GameController {
 	}
 
 	onCellClick(index: number) {
-		const character = this.positionedCharacters?.find(
-			(positionedCharacter) => positionedCharacter.position === index
-		)?.character;
-		if (character && ['bowman', 'swordsman', 'magician'].includes(character.type)) {
-			if (this.gamePlay.cellCharacter) {
-				this.gamePlay.deselectCell(this.gamePlay.cellCharacter);
+		const positionedCharacter = this.positionedCharacters?.find(
+			(character) => character.position === index
+		);
+		if (positionedCharacter?.character && ['bowman', 'swordsman', 'magician'].includes(positionedCharacter.character.type)) {
+			if (this.gamePlay.currentCharacter?.position) {
+				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
 			}
-			this.gamePlay.cellCharacter = index;
+			this.gamePlay.currentCharacter = positionedCharacter;
 			this.gamePlay.selectCell(index);
+		} else if (this.gamePlay.currentCharacter) {
+			if (attackRadius(
+				this.gamePlay.currentCharacter?.position,
+				this.gamePlay.currentCharacter?.character.attackRange,
+				this.gamePlay.boardSize
+			).includes(index)
+				&& positionedCharacter?.character
+				&& ['daemon', 'undead', 'vampire'].includes(
+					positionedCharacter.character.type
+				)
+			) {
+				const damage = Math.max(
+					this.gamePlay.currentCharacter.character.attack - positionedCharacter.character.defence,
+					this.gamePlay.currentCharacter.character.attack * 0.1
+				);
+				this.gamePlay.showDamage(index, `${damage}`).then(() => {
+					positionedCharacter.character.health -= damage;
+					this.gamePlay.redrawPositions(this.positionedCharacters!);
+				});
+			} else if (movementRadius(
+				this.gamePlay.currentCharacter?.position,
+				this.gamePlay.currentCharacter?.character.movementRange,
+				this.gamePlay.boardSize
+			).includes(index) && !positionedCharacter?.character
+			) {
+				this.gamePlay.deselectCell(index);
+				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
+				this.gamePlay.currentCharacter.position = index;
+				this.gamePlay.redrawPositions(this.positionedCharacters!);
+			}
 		} else {
-			GamePlay.showError('Выберите своего персонажа');
+			GamePlay.showError('Недопустимое действие');
 		}
 	}
 
@@ -76,27 +108,36 @@ export default class GameController {
 		if (character) {
 			this.gamePlay.showCellTooltip(character.toString(), index);
 		}
-		switch (true) {
-			case !character:
+		if (this.gamePlay.currentCharacter) {
+			if (['bowman', 'swordsman', 'magician'].includes(character?.type ?? '')) {
+				this.gamePlay.setCursor(cursors.pointer);
+			} else if (['daemon', 'undead', 'vampire'].includes(character?.type ?? '')) {
+				if (attackRadius(
+					this.gamePlay.currentCharacter?.position,
+					this.gamePlay.currentCharacter?.character.attackRange,
+					this.gamePlay.boardSize
+				).includes(index)) {
+					this.gamePlay.setCursor(cursors.crosshair);
+					this.gamePlay.selectCell(index, 'red');
+				} else {
+					this.gamePlay.setCursor(cursors.notallowed);
+				}
+			} else if (movementRadius(
+				this.gamePlay.currentCharacter?.position,
+				this.gamePlay.currentCharacter?.character.movementRange,
+				this.gamePlay.boardSize
+			).includes(index)) {
 				this.gamePlay.setCursor(cursors.pointer);
 				this.gamePlay.selectCell(index, 'green');
-				break;
-			case ['bowman', 'swordsman', 'magician'].includes(character!.type):
-				this.gamePlay.setCursor(cursors.pointer);
-				break;
-			case ['daemon', 'undead', 'vampire'].includes(character!.type):
-				this.gamePlay.setCursor(cursors.crosshair);
-				this.gamePlay.selectCell(index, 'red');
-				break;
-			default:
+			} else {
 				this.gamePlay.setCursor(cursors.notallowed);
-				GamePlay.showError('Недопустимое действие');
+			}
 		}
 	}
 
 	onCellLeave(index: number) {
 		this.gamePlay.hideCellTooltip(index);
-		if (index !== this.gamePlay.cellCharacter) {
+		if (index !== this.gamePlay?.currentCharacter?.position) {
 			this.gamePlay.deselectCell(index);
 		}
 	}

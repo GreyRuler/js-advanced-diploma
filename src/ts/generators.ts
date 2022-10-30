@@ -63,3 +63,58 @@ export function randomPosition(availablePositions: Array<number>, countPositions
 	}
 	return array.flat();
 }
+
+export function attackRadius(position: number, radius: number, size: number) {
+	const arr = [];
+	const possiblePositions = range(
+		position - size * radius,
+		position + size * radius + 1,
+		size
+	);
+	// eslint-disable-next-line max-len
+	const verticalPositions = possiblePositions.filter((value) => value >= 0 && value < size * size);
+	const verticalPositionsIterator = verticalPositions.values();
+	let positionIterator = verticalPositionsIterator.next().value;
+	for (let i = 0; i < size; i++) {
+		const indexes = range(size * i, size * (i + 1));
+		if (indexes.includes(positionIterator)) {
+			// eslint-disable-next-line @typescript-eslint/no-loop-func,max-len
+			arr.push(indexes.filter((value) => value <= positionIterator + radius && value >= positionIterator - radius));
+			positionIterator = verticalPositionsIterator.next().value;
+		}
+	}
+	return arr.flat();
+}
+
+export function movementRadius(position: number, radius: number, size: number) {
+	const arr = [];
+	const possiblePositions = range(
+		position - size * radius,
+		position + size * radius + 1,
+		size
+	);
+	const verticalPositions = possiblePositions.filter((value) => value >= 0 && value < size * size);
+	const positionIndex = verticalPositions.indexOf(position);
+	const topPositions = verticalPositions.slice(0, positionIndex).reverse();
+	const bottomPositions = verticalPositions.slice(positionIndex); for (let i = 0; i < radius; i++) {
+		for (let j = 0; j < size; j++) {
+			const indexes = range(size * j, size * (j + 1));
+			if (indexes.includes(topPositions[i])) {
+				const a = range(topPositions[i] - (i + 1), topPositions[i] + (i + 2), i + 1);
+				arr.push(a.filter((item) => indexes.includes(item)));
+			}
+			if (indexes.includes(bottomPositions[i + 1])) {
+				const b = range(bottomPositions[i + 1] - (i + 1), bottomPositions[i + 1] + (i + 2), i + 1);
+				arr.push(b.filter((item) => indexes.includes(item)));
+			}
+		}
+	}
+	for (let j = 0; j < size; j++) {
+		const indexes = range(size * j, size * (j + 1));
+		if (indexes.includes(bottomPositions[0])) {
+			const c = range(bottomPositions[0] - radius, bottomPositions[0] + radius + 1);
+			arr.push(c.filter((item) => indexes.includes(item)));
+		}
+	}
+	return arr.flat();
+}
