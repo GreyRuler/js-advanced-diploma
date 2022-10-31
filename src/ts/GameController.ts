@@ -12,6 +12,8 @@ import {
 } from './generators';
 import PositionedCharacter from './PositionedCharacter';
 import cursors from './cursors';
+import { EnemiesVSAlly } from './type/EnemiesVSAlly';
+import { dealDamage, randomElementFromArray } from './utils';
 
 export default class GameController {
 	private readonly gamePlay: GamePlay;
@@ -77,15 +79,15 @@ export default class GameController {
 					positionedCharacter.character.type
 				)
 			) {
-				const damage = Math.max(
-					this.gamePlay.currentCharacter.character.attack - positionedCharacter.character.defence,
-					this.gamePlay.currentCharacter.character.attack * 0.1
+				const damage = dealDamage(
+					this.gamePlay.currentCharacter.character,
+					positionedCharacter.character
 				);
 				this.gamePlay.showDamage(index, `${damage}`).then(() => {
 					positionedCharacter.character.health -= damage;
 					this.gamePlay.redrawPositions(this.positionedCharacters!);
 				});
-				// TODO ход врага
+				this.attackEnemy();
 			} else if (movementRadius(
 				this.gamePlay.currentCharacter?.position,
 				this.gamePlay.currentCharacter?.character.movementRange,
@@ -96,7 +98,7 @@ export default class GameController {
 				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
 				this.gamePlay.currentCharacter.position = index;
 				this.gamePlay.redrawPositions(this.positionedCharacters!);
-				// TODO ход врага
+				this.attackEnemy();
 			} else {
 				GamePlay.showError('Недопустимое действие');
 			}
@@ -141,6 +143,41 @@ export default class GameController {
 		this.gamePlay.hideCellTooltip(index);
 		if (index !== this.gamePlay?.currentCharacter?.position) {
 			this.gamePlay.deselectCell(index);
+		}
+	}
+
+	attackEnemy() {
+		const allies = this.positionedCharacters?.filter((value) => ['bowman', 'swordsman', 'magician'].includes(value.character.type));
+		const enemies = this.positionedCharacters?.filter((value) => !['bowman', 'swordsman', 'magician'].includes(value.character.type));
+		const attackAlly = allies?.reduce((array, ally: PositionedCharacter) => {
+			const enemiesAttackers = enemies?.filter((enemy) => {
+				const attackPositionsEnemy = attackRadius(
+					enemy.position,
+					enemy.character.attackRange,
+					this.gamePlay.boardSize
+				);
+				return attackPositionsEnemy.includes(ally.position);
+			});
+			if (enemiesAttackers?.length) {
+				const item: EnemiesVSAlly = [ally, enemiesAttackers];
+				array.push(item);
+			}
+			return array;
+		}, <EnemiesVSAlly[]>[]);
+		if (attackAlly) {
+			const randomAttackAlly = randomElementFromArray(attackAlly);
+			const [attackedAlly, attackerEnemies] = randomAttackAlly;
+			const attackerEnemy = randomElementFromArray(attackerEnemies);
+			const damage = dealDamage(
+				attackerEnemy.character,
+				attackedAlly.character
+			);
+			this.gamePlay.showDamage(attackedAlly.position, `${damage}`).then(() => {
+				attackedAlly.character.health -= damage;
+				this.gamePlay.redrawPositions(this.positionedCharacters!);
+			});
+		} else {
+			// TODO подойти поближе
 		}
 	}
 }

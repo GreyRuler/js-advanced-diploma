@@ -1,4 +1,5 @@
 import { range } from './generators';
+import Character from './Character';
 
 /**
  * @todo
@@ -57,4 +58,13 @@ export function calcHealthLevel(health: number) {
 	}
 
 	return 'high';
+}
+
+export function dealDamage(attacker: Character, target: Character) {
+	return Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
+}
+
+export function randomElementFromArray(array: any[]) {
+	const randomIndex = Math.floor(Math.random() * array.length);
+	return array[randomIndex];
 }
