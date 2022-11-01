@@ -32,8 +32,6 @@ export default class GamePlay {
 
 	public currentCharacter?: PositionedCharacter;
 
-	private cellOther?: number;
-
 	constructor(container: Element | null) {
 		if (container) {
 			this.container = container;

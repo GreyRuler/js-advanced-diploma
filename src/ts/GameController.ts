@@ -13,7 +13,8 @@ import {
 import PositionedCharacter from './PositionedCharacter';
 import cursors from './cursors';
 import { EnemiesVSAlly } from './type/EnemiesVSAlly';
-import { dealDamage, randomElementFromArray } from './utils';
+import { dealDamage, levelUP, randomElementFromArray } from './utils';
+import Character from './Character';
 
 export default class GameController {
 	private readonly gamePlay: GamePlay;
@@ -83,11 +84,22 @@ export default class GameController {
 					this.gamePlay.currentCharacter.character,
 					positionedCharacter.character
 				);
+				positionedCharacter.character.health -= damage;
 				this.gamePlay.showDamage(index, `${damage}`).then(() => {
-					positionedCharacter.character.health -= damage;
+					this.deathCharacter(positionedCharacter.character);
 					this.gamePlay.redrawPositions(this.positionedCharacters!);
 				});
-				this.attackEnemy();
+				const enemies = this.enemies();
+				this.gamePlay.currentCharacter = undefined;
+				this.gamePlay.setCursor(cursors.auto);
+				if (enemies && enemies.length) {
+					this.attackEnemy();
+				} else {
+					const allies = this.allies();
+					allies?.forEach((ally) => {
+						levelUP(ally.character);
+					});
+				}
 			} else if (movementRadius(
 				this.gamePlay.currentCharacter?.position,
 				this.gamePlay.currentCharacter?.character.movementRange,
@@ -98,10 +110,14 @@ export default class GameController {
 				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
 				this.gamePlay.currentCharacter.position = index;
 				this.gamePlay.redrawPositions(this.positionedCharacters!);
+				this.gamePlay.currentCharacter = undefined;
+				this.gamePlay.setCursor(cursors.auto);
 				this.attackEnemy();
 			} else {
 				GamePlay.showError('Недопустимое действие');
 			}
+		} else {
+			GamePlay.showError('Выберите своего персонажа');
 		}
 	}
 
@@ -147,8 +163,8 @@ export default class GameController {
 	}
 
 	attackEnemy() {
-		const allies = this.positionedCharacters?.filter((value) => ['bowman', 'swordsman', 'magician'].includes(value.character.type));
-		const enemies = this.positionedCharacters?.filter((value) => !['bowman', 'swordsman', 'magician'].includes(value.character.type));
+		const allies = this.allies();
+		const enemies = this.enemies();
 		const attackAlly = allies?.reduce((array, ally: PositionedCharacter) => {
 			const enemiesAttackers = enemies?.filter((enemy) => {
 				const attackPositionsEnemy = attackRadius(
@@ -164,7 +180,7 @@ export default class GameController {
 			}
 			return array;
 		}, <EnemiesVSAlly[]>[]);
-		if (attackAlly) {
+		if (attackAlly?.length) {
 			const randomAttackAlly = randomElementFromArray(attackAlly);
 			const [attackedAlly, attackerEnemies] = randomAttackAlly;
 			const attackerEnemy = randomElementFromArray(attackerEnemies);
@@ -172,12 +188,37 @@ export default class GameController {
 				attackerEnemy.character,
 				attackedAlly.character
 			);
+			attackedAlly.character.health -= damage;
 			this.gamePlay.showDamage(attackedAlly.position, `${damage}`).then(() => {
-				attackedAlly.character.health -= damage;
+				this.deathCharacter(attackedAlly.character);
 				this.gamePlay.redrawPositions(this.positionedCharacters!);
 			});
-		} else {
-			// TODO подойти поближе
+		} else if (enemies) {
+			const randomEnemy = randomElementFromArray(enemies);
+			const possiblePositions = movementRadius(
+				randomEnemy.position,
+				randomEnemy.character.movementRange,
+				this.gamePlay.boardSize
+			);
+			const positionsCharacters = this.positionedCharacters?.map((character) => character.position);
+			// eslint-disable-next-line max-len
+			const positions = possiblePositions.filter((position) => !positionsCharacters?.includes(position));
+			randomEnemy.position = randomElementFromArray(positions);
 		}
+	}
+
+	deathCharacter(character: Character) {
+		if (character.health < 0) {
+			// eslint-disable-next-line max-len
+			this.positionedCharacters = this.positionedCharacters?.filter((positionedCharacter) => positionedCharacter.character !== character);
+		}
+	}
+
+	allies() {
+		return this.positionedCharacters?.filter((value) => ['bowman', 'swordsman', 'magician'].includes(value.character.type));
+	}
+
+	enemies() {
+		return this.positionedCharacters?.filter((value) => !['bowman', 'swordsman', 'magician'].includes(value.character.type));
 	}
 }
