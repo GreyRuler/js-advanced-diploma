@@ -69,24 +69,6 @@ export function randomElementFromArray(array: any[]) {
 	return array[randomIndex];
 }
 
-// TODO перенести в Character
 export function improvingPerformance(attribute: number, life: number) {
 	return Math.max(attribute, (attribute * (80 + life)) / 100);
-}
-
-export function levelUP(character: Character) {
-	if (character.health > 20) {
-		character.health = 100;
-	} else {
-		character.health += 80;
-	}
-	character.level += 1;
-	character.attack = improvingPerformance(
-		character.attack,
-		character.health
-	);
-	character.defence = improvingPerformance(
-		character.defence,
-		character.health
-	);
 }

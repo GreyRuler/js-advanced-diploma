@@ -1,6 +1,5 @@
 import GamePlay from './GamePlay';
 import GameStateService from './GameStateService';
-import themes from './themes';
 import Bowman from './characters/ally/Bowman';
 import Magician from './characters/ally/Magician';
 import Swordsman from './characters/ally/Swordsman';
@@ -13,8 +12,9 @@ import {
 import PositionedCharacter from './PositionedCharacter';
 import cursors from './cursors';
 import { EnemiesVSAlly } from './type/EnemiesVSAlly';
-import { dealDamage, levelUP, randomElementFromArray } from './utils';
+import { dealDamage, randomElementFromArray } from './utils';
 import Character from './Character';
+import ThemesIterator from './themes/ThemesIterator';
 
 export default class GameController {
 	private readonly gamePlay: GamePlay;
@@ -23,13 +23,17 @@ export default class GameController {
 
 	private positionedCharacters?: PositionedCharacter[];
 
+	private themes: ThemesIterator;
+
 	constructor(gamePlay: GamePlay, stateService: GameStateService) {
 		this.gamePlay = gamePlay;
 		this.stateService = stateService;
+		// TODO брать из GameState??
+		this.themes = new ThemesIterator('prairie');
 	}
 
 	init() {
-		this.gamePlay.drawUi(themes.prairie);
+		this.gamePlay.drawUi(this.themes.next());
 		const ally = [Bowman, Magician, Swordsman];
 		const enemy = [Daemon, Undead, Vampire];
 		const countEnemy = 3;
@@ -88,18 +92,20 @@ export default class GameController {
 				this.gamePlay.showDamage(index, `${damage}`).then(() => {
 					this.deathCharacter(positionedCharacter.character);
 					this.gamePlay.redrawPositions(this.positionedCharacters!);
+
+					const enemies = this.enemies();
+					this.gamePlay.currentCharacter = undefined;
+					this.gamePlay.setCursor(cursors.auto);
+					if (enemies && enemies.length) {
+						this.attackEnemy();
+					} else {
+						const allies = this.allies();
+						allies?.forEach((ally) => {
+							ally.character.levelUP();
+						});
+						this.gamePlay.drawUi(this.themes.next());
+					}
 				});
-				const enemies = this.enemies();
-				this.gamePlay.currentCharacter = undefined;
-				this.gamePlay.setCursor(cursors.auto);
-				if (enemies && enemies.length) {
-					this.attackEnemy();
-				} else {
-					const allies = this.allies();
-					allies?.forEach((ally) => {
-						levelUP(ally.character);
-					});
-				}
 			} else if (movementRadius(
 				this.gamePlay.currentCharacter?.position,
 				this.gamePlay.currentCharacter?.character.movementRange,
