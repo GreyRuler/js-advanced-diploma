@@ -6,7 +6,6 @@ import Swordsman from './characters/ally/Swordsman';
 import Daemon from './characters/enemy/Daemon';
 import Undead from './characters/enemy/Undead';
 import Vampire from './characters/enemy/Vampire';
-import GameState from './GameState';
 import GamePlay from './GamePlay';
 
 export default class GameStateService {

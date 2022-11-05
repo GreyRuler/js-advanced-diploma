@@ -43,7 +43,8 @@
 					"exports": "never",
 					"functions": "never"
 				}],
-				"no-alert": "off"
+				"no-alert": "off",
+				"import/no-cycle" : [0]
 			}
         }
     ]
