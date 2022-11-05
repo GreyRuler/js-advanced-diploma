@@ -74,13 +74,10 @@ export default class GamePlay {
 		this.loadGameEl.addEventListener('click', (event: Event) => this.onLoadGameClick(event));
 
 		const board = this.container.querySelector('[data-id=board]');
-		if (board) {
-			this.boardEl = board as HTMLElement;
-		} else {
-			throw Error(`${board}`);
-		}
+		this.boardEl = board as HTMLElement;
 
 		this.boardEl.classList.add(theme);
+		this.cells.length = 0;
 		for (let i = 0; i < this.boardSize ** 2; i += 1) {
 			const cellEl = document.createElement('div');
 			cellEl.classList.add('cell', 'map-tile', `map-tile-${calcTileType(i, this.boardSize)}`);
@@ -255,5 +252,12 @@ export default class GamePlay {
 		if (this.boardEl) {
 			this.boardEl.style.cursor = cursor;
 		}
+	}
+
+	clearEvents() {
+		this.cells.forEach((cellEl: HTMLElement) => {
+			const clone = cellEl.cloneNode(true);
+			cellEl.replaceWith(clone);
+		});
 	}
 }

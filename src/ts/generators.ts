@@ -1,5 +1,12 @@
 import Team from './Team';
 import Character from './Character';
+import Daemon from './characters/enemy/Daemon';
+import Undead from './characters/enemy/Undead';
+import Vampire from './characters/enemy/Vampire';
+import PositionedCharacter from './PositionedCharacter';
+import Bowman from './characters/ally/Bowman';
+import Magician from './characters/ally/Magician';
+import Swordsman from './characters/ally/Swordsman';
 
 /**
  * Формирует экземпляр персонажа из массива allowedTypes со
@@ -117,4 +124,28 @@ export function movementRadius(position: number, radius: number, size: number) {
 		}
 	}
 	return arr.flat();
+}
+
+export function generatePositionedEnemies(boardSize: number) {
+	const enemy = [Daemon, Undead, Vampire];
+	const countEnemy = 1;
+	const enemies = generateTeam(enemy, 4, countEnemy);
+	const positionsEnemy = range(boardSize - 2, boardSize * boardSize - boardSize, 8)
+		.concat(range(boardSize - 1, boardSize * boardSize - boardSize, 8));
+	const randomPositionsEnemy = randomPosition(positionsEnemy, countEnemy);
+	return enemies.characters.map(
+		(item, idx) => new PositionedCharacter(item, randomPositionsEnemy[idx])
+	);
+}
+
+export function generatePositionedAllies(boardSize: number) {
+	const ally = [Bowman, Magician, Swordsman];
+	const countAlly = 10;
+	const allies = generateTeam(ally, 4, countAlly);
+	const positionsAlly = range(0, boardSize * boardSize - boardSize, 8)
+		.concat(range(1, boardSize * boardSize - boardSize + 1, 8));
+	const randomPositionsAlly = randomPosition(positionsAlly, countAlly);
+	return allies.characters.map(
+		(item, idx) => new PositionedCharacter(item, randomPositionsAlly[idx])
+	);
 }
