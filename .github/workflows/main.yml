@@ -39,4 +39,7 @@ jobs:
                 run: npm run build
 
             -   name: Deploy 👷
-                run: npm run deploy
+                run: |
+                    git config --global user.name 'GreyRuler'
+                    git config --global user.email 'daniil_vasilenko757@mail.ru'
+                    npm run deploy
