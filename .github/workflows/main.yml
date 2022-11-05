@@ -40,6 +40,7 @@ jobs:
 
             -   name: Deploy 👷
                 run: |
-                    git config --global user.name 'GreyRuler'
-                    git config --global user.email 'daniil_vasilenko757@mail.ru'
-                    npm run deploy
+                    git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+                    npm run deploy -- -u "github-actions-bot <support+actions@github.com>"
+                env:
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
