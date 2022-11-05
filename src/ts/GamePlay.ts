@@ -32,12 +32,8 @@ export default class GamePlay {
 
 	public currentCharacter?: PositionedCharacter;
 
-	constructor(container: Element | null) {
-		if (container) {
-			this.container = container;
-		} else {
-			throw Error('Container is null');
-		}
+	constructor(container: HTMLElement) {
+		this.container = container;
 		this.boardSize = 8;
 		this.cells = [];
 		this.cellClickListeners = [];
