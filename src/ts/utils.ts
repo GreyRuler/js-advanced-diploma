@@ -68,7 +68,3 @@ export function randomElementFromArray(array: any[]) {
 	const randomIndex = Math.floor(Math.random() * array.length);
 	return array[randomIndex];
 }
-
-export function improvingPerformance(attribute: number, life: number) {
-	return Math.max(attribute, (attribute * (80 + life)) / 100);
-}

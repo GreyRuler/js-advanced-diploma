@@ -12,7 +12,6 @@
  * undead
  * vampire
  */
-import { improvingPerformance } from './utils';
 
 export default abstract class Character {
 	attackRange: number;
@@ -54,16 +53,14 @@ export default abstract class Character {
 				this.health += 80;
 			}
 			this.level += 1;
-			this.attack = improvingPerformance(
-				this.attack,
-				this.health
-			);
-			this.defence = improvingPerformance(
-				this.defence,
-				this.health
-			);
+			this.attack = this.improvingPerformance(this.attack);
+			this.defence = this.improvingPerformance(this.defence);
 		} else {
 			this.level += 1;
 		}
+	}
+
+	improvingPerformance(attribute: number) {
+		return Math.max(attribute, (attribute * (80 + this.health)) / 100);
 	}
 }
