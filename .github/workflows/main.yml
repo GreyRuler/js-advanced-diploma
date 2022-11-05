@@ -26,18 +26,17 @@ jobs:
             -   name: Checkout 🛎️
                 uses: actions/checkout@v3.0.0
 
-#            -   name: Install 🔧
-#                run: npm install
-#
-#            -   name: Lint 🐼
-#                run: npm run lint
-#
-#            -   name: Run Test 🔨
-#                run: npm run test
-#
-#            -   name: Build 👷
-#                run: npm run build
+            -   name: Install 🔧
+                run: npm install
 
-            -   name: Integration 👷
-                script:
-                    - git checkout gh-pages myfile.txt
+            -   name: Lint 🐼
+                run: npm run lint
+
+            -   name: Run Test 🔨
+                run: npm run test
+
+            -   name: Build 👷
+                run: npm run build
+
+            -   name: Deploy 👷
+                run: npm run deploy
