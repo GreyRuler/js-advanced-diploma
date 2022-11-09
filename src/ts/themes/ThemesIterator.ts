@@ -1,7 +1,7 @@
 import themes from './themes';
 
 export default class ThemesIterator {
-	private readonly values: string[];
+	private readonly values: string[] = themes;
 
 	private index: number;
 
@@ -9,7 +9,6 @@ export default class ThemesIterator {
 
 	constructor(currentTheme: string) {
 		this.currentTheme = currentTheme;
-		this.values = themes;
 		this.index = this.values.indexOf(currentTheme);
 	}
 

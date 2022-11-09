@@ -18,21 +18,17 @@ export default abstract class Character {
 
 	movementRange: number;
 
-	level: number;
+	level: number = 0;
 
-	attack: number;
+	attack: number = 0;
 
-	defence: number;
+	defence: number = 0;
 
-	health: number;
+	health: number = 50;
 
 	type: string;
 
 	protected constructor(level: number, type: string) {
-		this.level = 0;
-		this.attack = 0;
-		this.defence = 0;
-		this.health = 50;
 		this.type = type;
 		this.attackRange = 0;
 		this.movementRange = 0;

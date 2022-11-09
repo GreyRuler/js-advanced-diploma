@@ -4,7 +4,7 @@ import Bowman from '../characters/ally/Bowman';
 import Magician from '../characters/ally/Magician';
 import Swordsman from '../characters/ally/Swordsman';
 
-test('', () => {
+test('testName', () => {
 	const maxLevel = 3;
 	const team = generateTeam([Bowman, Magician, Swordsman], maxLevel, 4);
 	team.characters.forEach((character) => {
@@ -13,7 +13,7 @@ test('', () => {
 	});
 });
 
-test('', () => {
+test('testName', () => {
 	const count = 4;
 	const team = generateTeam([Bowman, Magician, Swordsman], 3, count);
 	const received = team.characters.length;

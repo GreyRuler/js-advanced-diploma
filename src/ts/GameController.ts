@@ -10,20 +10,24 @@ import { dealDamage, randomElementFromArray } from './utils';
 import Character from './Character';
 import ThemesIterator from './themes/ThemesIterator';
 import GameState from './GameState';
+import Team from './Team';
 
 export default class GameController {
 	private readonly gamePlay: GamePlay;
 
 	private stateService: GameStateService;
 
-	private positionedCharacters?: PositionedCharacter[];
+	private positionedCharacters: PositionedCharacter[] = [];
 
-	private themes: ThemesIterator;
+	private themes: ThemesIterator = new ThemesIterator('prairie');
+
+	private userTeam?: Team;
+
+	private enemyTeam?: PositionedCharacter[];
 
 	constructor(gamePlay: GamePlay, stateService: GameStateService) {
 		this.gamePlay = gamePlay;
 		this.stateService = stateService;
-		this.themes = new ThemesIterator('prairie');
 	}
 
 	init() {
@@ -36,6 +40,9 @@ export default class GameController {
 
 		this.positionedCharacters = positionedAllies.concat(positionedEnemies);
 
+		this.userTeam = new Team(positionedAllies.map((positionedAlly) => positionedAlly.character));
+		this.enemyTeam = positionedEnemies;
+
 		this.gamePlay.redrawPositions(this.positionedCharacters);
 		this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
 		this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
@@ -44,7 +51,8 @@ export default class GameController {
 		this.gamePlay.addNewGameListener(() => this.init());
 		this.gamePlay.addSaveGameListener(() => {
 			const state = {
-				characters: this.positionedCharacters,
+				enemyTeam: this.enemyTeam,
+				userTeam: this.userTeam?.characters,
 				theme: this.themes.currentTheme
 			};
 			this.stateService.save(state);
@@ -56,16 +64,40 @@ export default class GameController {
 				this.themes = new ThemesIterator(loadGame.theme);
 				this.gamePlay.drawUi(this.themes.currentTheme);
 				this.positionedCharacters = loadGame.characters;
+				this.userTeam = new Team(loadGame.userTeam);
 				this.gamePlay.redrawPositions(this.positionedCharacters);
 			}
 		});
 	}
 
 	onCellClick(index: number) {
-		const positionedCharacter = this.positionedCharacters?.find(
+		const positionedCharacter = this.positionedCharacters.find(
 			(character) => character.position === index
 		);
-		if (positionedCharacter?.character && ['bowman', 'swordsman', 'magician'].includes(positionedCharacter.character.type)) {
+
+		if (this.gamePlay.currentCharacter && !positionedCharacter && movementRadius(
+			this.gamePlay.currentCharacter?.position,
+			this.gamePlay.currentCharacter?.character.movementRange,
+			this.gamePlay.boardSize
+		).includes(index)) {
+			this.gamePlay.deselectCell(index);
+			this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
+			this.gamePlay.currentCharacter.position = index;
+			this.gamePlay.redrawPositions(this.positionedCharacters);
+			this.gamePlay.currentCharacter = undefined;
+			this.gamePlay.setCursor(cursors.auto);
+			this.attackEnemy();
+		}
+
+		if (!positionedCharacter) {
+			return;
+		}
+
+		console.log(this.userTeam);
+		console.log(this.userTeam?.has(positionedCharacter.character));
+		console.log(positionedCharacter.character);
+
+		if (this.userTeam?.has(positionedCharacter.character)) {
 			if (this.gamePlay.currentCharacter?.position) {
 				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
 			}
@@ -77,10 +109,7 @@ export default class GameController {
 				this.gamePlay.currentCharacter?.character.attackRange,
 				this.gamePlay.boardSize
 			).includes(index)
-				&& positionedCharacter?.character
-				&& ['daemon', 'undead', 'vampire'].includes(
-					positionedCharacter.character.type
-				)
+				&& !this.userTeam?.has(positionedCharacter.character)
 			) {
 				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
 				const damage = dealDamage(
@@ -90,7 +119,7 @@ export default class GameController {
 				positionedCharacter.character.health -= damage;
 				this.gamePlay.showDamage(index, `${damage}`).then(() => {
 					this.deathCharacter(positionedCharacter.character);
-					this.gamePlay.redrawPositions(this.positionedCharacters!);
+					this.gamePlay.redrawPositions(this.positionedCharacters);
 					const enemies = this.enemies();
 					this.gamePlay.currentCharacter = undefined;
 					this.gamePlay.setCursor(cursors.auto);
@@ -103,29 +132,16 @@ export default class GameController {
 						});
 						const { boardSize } = this.gamePlay;
 						const positionedEnemies = generatePositionedEnemies(boardSize);
-						this.positionedCharacters = this.positionedCharacters?.concat(positionedEnemies);
+						this.positionedCharacters = this.positionedCharacters.concat(positionedEnemies);
 						const nextTheme = this.themes.next();
 						if (nextTheme !== 'prairie') {
 							this.gamePlay.drawUi(nextTheme);
-							this.gamePlay.redrawPositions(this.positionedCharacters!);
+							this.gamePlay.redrawPositions(this.positionedCharacters);
 						} else {
 							this.gamePlay.clearEvents();
 						}
 					}
 				});
-			} else if (movementRadius(
-				this.gamePlay.currentCharacter?.position,
-				this.gamePlay.currentCharacter?.character.movementRange,
-				this.gamePlay.boardSize
-			).includes(index) && !positionedCharacter?.character
-			) {
-				this.gamePlay.deselectCell(index);
-				this.gamePlay.deselectCell(this.gamePlay.currentCharacter.position);
-				this.gamePlay.currentCharacter.position = index;
-				this.gamePlay.redrawPositions(this.positionedCharacters!);
-				this.gamePlay.currentCharacter = undefined;
-				this.gamePlay.setCursor(cursors.auto);
-				this.attackEnemy();
 			} else {
 				GamePlay.showError('Недопустимое действие');
 			}
@@ -135,7 +151,7 @@ export default class GameController {
 	}
 
 	onCellEnter(index: number) {
-		const character = this.positionedCharacters?.find(
+		const character = this.positionedCharacters.find(
 			(positionedCharacter) => positionedCharacter.position === index
 		)?.character;
 		if (character) {
@@ -204,7 +220,7 @@ export default class GameController {
 			attackedAlly.character.health -= damage;
 			this.gamePlay.showDamage(attackedAlly.position, `${damage}`).then(() => {
 				this.deathCharacter(attackedAlly.character);
-				this.gamePlay.redrawPositions(this.positionedCharacters!);
+				this.gamePlay.redrawPositions(this.positionedCharacters);
 				if (!this.allies()?.length) {
 					this.gamePlay.clearEvents();
 				}
@@ -216,9 +232,9 @@ export default class GameController {
 				randomEnemy.character.movementRange,
 				this.gamePlay.boardSize
 			);
-			const positionsCharacters = this.positionedCharacters?.map((character) => character.position);
+			const positionsCharacters = this.positionedCharacters.map((character) => character.position);
 			// eslint-disable-next-line max-len
-			const positions = possiblePositions.filter((position) => !positionsCharacters?.includes(position));
+			const positions = possiblePositions.filter((position) => !positionsCharacters.includes(position));
 			randomEnemy.position = randomElementFromArray(positions);
 		}
 	}
@@ -226,15 +242,15 @@ export default class GameController {
 	deathCharacter(character: Character) {
 		if (character.health <= 0) {
 			// eslint-disable-next-line max-len
-			this.positionedCharacters = this.positionedCharacters?.filter((positionedCharacter) => positionedCharacter.character !== character);
+			this.positionedCharacters = this.positionedCharacters.filter((positionedCharacter) => positionedCharacter.character !== character);
 		}
 	}
 
 	allies() {
-		return this.positionedCharacters?.filter((value) => ['bowman', 'swordsman', 'magician'].includes(value.character.type));
+		return this.positionedCharacters.filter((value) => ['bowman', 'swordsman', 'magician'].includes(value.character.type));
 	}
 
 	enemies() {
-		return this.positionedCharacters?.filter((value) => !['bowman', 'swordsman', 'magician'].includes(value.character.type));
+		return this.positionedCharacters.filter((value) => !['bowman', 'swordsman', 'magician'].includes(value.character.type));
 	}
 }

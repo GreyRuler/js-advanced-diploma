@@ -22,4 +22,8 @@ export default class Team {
 	get characters(): Array<Character> {
 		return this._characters;
 	}
+
+	has(character: Character) {
+		return this._characters.includes(character);
+	}
 }

@@ -4,25 +4,25 @@ import PositionedCharacter from './PositionedCharacter';
 export default class GamePlay {
 	[key: string]: any;
 
-	public readonly boardSize: number;
+	public readonly boardSize: number = 8;
 
 	private readonly container: Element;
 
 	private boardEl?: HTMLElement;
 
-	private readonly cells: HTMLElement[];
+	private readonly cells: HTMLElement[] = [];
 
-	private cellClickListeners: any[];
+	private cellClickListeners: any[] = [];
 
-	private cellEnterListeners: any[];
+	private cellEnterListeners: any[] = [];
 
-	private cellLeaveListeners: any[];
+	private cellLeaveListeners: any[] = [];
 
-	private newGameListeners: any[];
+	private newGameListeners: any[] = [];
 
-	private saveGameListeners: any[];
+	private saveGameListeners: any[] = [];
 
-	private loadGameListeners: any[];
+	private loadGameListeners: any[] = [];
 
 	private newGameEl: any;
 
@@ -34,14 +34,6 @@ export default class GamePlay {
 
 	constructor(container: HTMLElement) {
 		this.container = container;
-		this.boardSize = 8;
-		this.cells = [];
-		this.cellClickListeners = [];
-		this.cellEnterListeners = [];
-		this.cellLeaveListeners = [];
-		this.newGameListeners = [];
-		this.saveGameListeners = [];
-		this.loadGameListeners = [];
 	}
 
 	/**
