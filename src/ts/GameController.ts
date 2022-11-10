@@ -23,7 +23,9 @@ export default class GameController {
 
 	private userTeam?: Team;
 
-	private enemyTeam?: PositionedCharacter[];
+	private positionedAllies: PositionedCharacter[] = [];
+
+	private positionedEnemies: PositionedCharacter[] = [];
 
 	constructor(gamePlay: GamePlay, stateService: GameStateService) {
 		this.gamePlay = gamePlay;
@@ -34,14 +36,17 @@ export default class GameController {
 		this.gamePlay.drawUi(this.themes.currentTheme);
 		const { boardSize } = this.gamePlay;
 
-		const positionedAllies = generatePositionedAllies(boardSize);
+		this.positionedAllies = generatePositionedAllies(boardSize);
 
-		const positionedEnemies = generatePositionedEnemies(boardSize);
+		this.positionedEnemies = generatePositionedEnemies(boardSize);
 
-		this.positionedCharacters = positionedAllies.concat(positionedEnemies);
+		this.positionedCharacters = this.positionedAllies.map((item) => item);
+		this.positionedEnemies.forEach((item) => {
+			this.positionedCharacters.push(item);
+		});
 
-		this.userTeam = new Team(positionedAllies.map((positionedAlly) => positionedAlly.character));
-		this.enemyTeam = positionedEnemies;
+		// eslint-disable-next-line max-len
+		this.userTeam = new Team(this.positionedAllies.map((positionedAlly) => positionedAlly.character));
 
 		this.gamePlay.redrawPositions(this.positionedCharacters);
 		this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
@@ -51,8 +56,8 @@ export default class GameController {
 		this.gamePlay.addNewGameListener(() => this.init());
 		this.gamePlay.addSaveGameListener(() => {
 			const state = {
-				enemyTeam: this.enemyTeam,
-				userTeam: this.userTeam?.characters,
+				userTeam: this.positionedAllies,
+				enemyTeam: this.positionedEnemies,
 				theme: this.themes.currentTheme
 			};
 			this.stateService.save(state);
@@ -63,6 +68,8 @@ export default class GameController {
 				const loadGame = GameState.from(state);
 				this.themes = new ThemesIterator(loadGame.theme);
 				this.gamePlay.drawUi(this.themes.currentTheme);
+				this.positionedAllies = state.allyTeam;
+				this.positionedEnemies = state.enemyTeam;
 				this.positionedCharacters = loadGame.characters;
 				this.userTeam = new Team(loadGame.userTeam);
 				this.gamePlay.redrawPositions(this.positionedCharacters);
@@ -92,10 +99,6 @@ export default class GameController {
 		if (!positionedCharacter) {
 			return;
 		}
-
-		console.log(this.userTeam);
-		console.log(this.userTeam?.has(positionedCharacter.character));
-		console.log(positionedCharacter.character);
 
 		if (this.userTeam?.has(positionedCharacter.character)) {
 			if (this.gamePlay.currentCharacter?.position) {
