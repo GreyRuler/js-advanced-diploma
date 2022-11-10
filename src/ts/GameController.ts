@@ -161,12 +161,12 @@ export default class GameController {
 			this.gamePlay.showCellTooltip(character.toString(), index);
 		}
 		if (this.gamePlay.currentCharacter) {
-			if (['bowman', 'swordsman', 'magician'].includes(character?.type ?? '')) {
-				this.gamePlay.setCursor(cursors.pointer);
-			} else if (['daemon', 'undead', 'vampire'].includes(character?.type ?? '')) {
-				if (attackRadius(
-					this.gamePlay.currentCharacter?.position,
-					this.gamePlay.currentCharacter?.character.attackRange,
+			if (character) {
+				if (this.userTeam?.has(character)) {
+					this.gamePlay.setCursor(cursors.pointer);
+				} else if (attackRadius(
+					this.gamePlay.currentCharacter.position,
+					this.gamePlay.currentCharacter.character.attackRange,
 					this.gamePlay.boardSize
 				).includes(index)) {
 					this.gamePlay.setCursor(cursors.crosshair);
@@ -175,8 +175,8 @@ export default class GameController {
 					this.gamePlay.setCursor(cursors.notallowed);
 				}
 			} else if (movementRadius(
-				this.gamePlay.currentCharacter?.position,
-				this.gamePlay.currentCharacter?.character.movementRange,
+				this.gamePlay.currentCharacter.position,
+				this.gamePlay.currentCharacter.character.movementRange,
 				this.gamePlay.boardSize
 			).includes(index)) {
 				this.gamePlay.setCursor(cursors.pointer);
@@ -250,10 +250,10 @@ export default class GameController {
 	}
 
 	allies() {
-		return this.positionedCharacters.filter((value) => ['bowman', 'swordsman', 'magician'].includes(value.character.type));
+		return this.positionedCharacters.filter((value) => this.userTeam?.has(value.character));
 	}
 
 	enemies() {
-		return this.positionedCharacters.filter((value) => !['bowman', 'swordsman', 'magician'].includes(value.character.type));
+		return this.positionedCharacters.filter((value) => !this.userTeam?.has(value.character));
 	}
 }
